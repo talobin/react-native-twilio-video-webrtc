@@ -14,8 +14,8 @@ import java.util.Map;
 
 
 import android.content.SharedPreferences;
-import com.twilio.audioswitch.AudioDevice;
-import com.twilio.audioswitch.AudioSwitch;
+// import com.twilio.audioswitch.AudioDevice;
+// import com.twilio.audioswitch.AudioSwitch;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
