@@ -12,6 +12,10 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+
+import android.content.SharedPreferences;
+import com.twilio.audioswitch.AudioDevice;
+import com.twilio.audioswitch.AudioSwitch;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -20,6 +24,7 @@ import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.media.AudioRecord;
 import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
@@ -77,6 +82,7 @@ import com.twilio.video.VideoCodec;
 
 import tvi.webrtc.voiceengine.WebRtcAudioManager;
 
+import android.widget.Toast;
 import tvi.webrtc.Camera1Enumerator;
 import tvi.webrtc.HardwareVideoEncoderFactory;
 import tvi.webrtc.HardwareVideoDecoderFactory;
@@ -242,7 +248,7 @@ public class CustomTwilioVideoView extends View implements LifecycleEventListene
         // Start the thread where data messages are received
         dataTrackMessageThread.start();
         dataTrackMessageThreadHandler = new Handler(dataTrackMessageThread.getLooper());
-
+        Log.i("HAI","CustomTwilioVideoView");
     }
 
     // ===== SETUP =================================================================================
@@ -475,6 +481,7 @@ public class CustomTwilioVideoView extends View implements LifecycleEventListene
         }
 
         setAudioFocus(enableAudio);
+
         connectToRoom();
     }
 
@@ -560,10 +567,15 @@ public class CustomTwilioVideoView extends View implements LifecycleEventListene
         AudioDeviceInfo[] devicesInfo = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
         boolean hasNonSpeakerphoneDevice = false;
         for (int i = 0; i < devicesInfo.length; i++) {
+            Log.i("HAI","device"+devicesInfo[i].getProductName());
             int deviceType = devicesInfo[i].getType();
+            Log.i("HAI","devtypeice"+deviceType);
             if (
                 deviceType == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
-                deviceType == AudioDeviceInfo.TYPE_WIRED_HEADPHONES
+                deviceType == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                deviceType == AudioDeviceInfo.TYPE_USB_HEADSET ||
+                deviceType == AudioDeviceInfo.TYPE_AUX_LINE ||
+                deviceType == AudioDeviceInfo.TYPE_BLE_HEADSET
             ) {
                 hasNonSpeakerphoneDevice = true;
             }
@@ -575,8 +587,25 @@ public class CustomTwilioVideoView extends View implements LifecycleEventListene
                 audioManager.setBluetoothScoOn(true);
                 hasNonSpeakerphoneDevice = true;
             }
+                        
+            Toast.makeText(themedReactContext.getApplicationContext(),devicesInfo[i].getProductName()+"|"+deviceType,Toast.LENGTH_SHORT).show();
         }
         audioManager.setSpeakerphoneOn(!hasNonSpeakerphoneDevice);
+        // SharedPreferences sharedPreferences = themedReactContext.getApplicationContext().getSharedPreferences("MySharedPref",Context.MODE_PRIVATE);
+        // int selectedAudio = sharedPreferences.getInt("audio",-1);
+        // if( selectedAudio != -1){
+
+        // }
+        // AudioSwitch audioSwitch = new AudioSwitch(themedReactContext.getApplicationContext());
+        // audioSwitch.start((audioDevices2, audioDevice) -> {
+        //     Log.d("HAI","Inside Hey bro"+ selectedAudio);
+        //     audioSwitch.selectDevice(audioDevices2.get(selectedAudio));
+        //     audioSwitch.activate();
+        //     return null;
+        // });
+        // List<AudioDevice> audioDevices  = audioSwitch.getAvailableAudioDevices();
+        // audioSwitch.selectDevice(audioDevices.get(0));
+        // audioSwitch.activate();
     }
 
     private void setAudioFocus(boolean focus) {
@@ -761,20 +790,6 @@ public class CustomTwilioVideoView extends View implements LifecycleEventListene
                 for (AudioTrackPublication at : rp.getAudioTracks()) {
                     if (at.getAudioTrack() != null) {
                         ((RemoteAudioTrack) at.getAudioTrack()).enablePlayback(enabled);
-                    }
-                }
-            }
-        }
-    }
-
-    public void setRemoteAudioPlayback(String participant, boolean enabled) {
-        if (room != null) {
-            for (RemoteParticipant rp : room.getRemoteParticipants()) {
-                if (rp.getSid().equals(participant)) {
-                    for (AudioTrackPublication at : rp.getAudioTracks()) {
-                        if (at.getAudioTrack() != null) {
-                            ((RemoteAudioTrack) at.getAudioTrack()).enablePlayback(enabled);
-                        }
                     }
                 }
             }
